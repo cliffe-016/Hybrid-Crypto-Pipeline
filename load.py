@@ -10,7 +10,12 @@ def load():
     try:
         # Convert the dictionaries to  dataframes
         ticker_df = pd.DataFrame(market_data.get("ticker", []))
-        trading_pairs_df = pd.DataFrame(market_data.get("trading_pairs", []))
+
+        # Get the nested data
+        trading_pairs_df = pd.DataFrame(market_data.get("trading_pairs", {}))
+
+        # Extract the symbol data to void a Value Error
+        trading_pairs_df = pd.DataFrame(trading_pairs_df.get("symbols", []))
 
         # For the othe dictionaries, iterate through the symbols (top-level key) 
         # Create empty lists to store the data after each iteration
@@ -58,12 +63,16 @@ def load():
 
     except exc.IntegrityError as e:
         print(f"Data Constraint Error: {e}")
+        raise
     except exc.OperationalError as e:
         print(f"Database connection Error: {e}")
+        raise
     except exc.DataError as e:
         print(f"Value Processing Error: {e}")
+        raise
     except Exception as e:
         print(f"Ingestion Failure: {e}")
+        raise
     else:
         print("Data Loaded Successfully")
         
