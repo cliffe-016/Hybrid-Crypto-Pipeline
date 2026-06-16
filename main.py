@@ -13,7 +13,7 @@ default_args = {
     'binance_batch_pipeline',
     default_args=default_args,
     description='Batch extraction and load for the Binance pipeline',
-    start_date=datetime(2026, 6, 18),
+    start_date=datetime(2026, 6, 16),
     schedule='@daily',
     max_active_runs=1,
     catchup=False
