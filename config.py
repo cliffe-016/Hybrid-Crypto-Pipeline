@@ -11,5 +11,18 @@ trading_pairs_url = base_url + os.getenv("TRADING_PAIRS")
 order_book_url = base_url + os.getenv("ORDER_BOOK")
 ohlc_url = base_url + os.getenv("OHLC")
 
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASS = os.getenv("POSTGRES_PASS")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
 
+POSTGRES_CONNECTION = {
+    "host": POSTGRES_HOST,
+    "user": POSTGRES_USER,
+    "password": POSTGRES_PASS,
+    "database": POSTGRES_DB,
+    "port": 5432
+    }
+
+POSTGRES_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
 
