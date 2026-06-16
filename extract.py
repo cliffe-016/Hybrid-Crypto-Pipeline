@@ -39,7 +39,7 @@ def extract():
                 # Convert the data to json and add the data to the main dictionary with the symbol as the key
                 market_data[symbol] = {
                     "order_book": order_data.json(),
-                    "candlestick": ohlc_url.json()
+                    "candlestick": ohlc_data.json()
                     }
                 
                 # Add a rate limit delay
@@ -47,12 +47,16 @@ def extract():
 
         except requests.exceptions.HTTPError as e:
             print(f"HTTP Error: {e}")
+            raise
         except requests.exceptions.ConnectionError as e:
             print(f"Connection Error: {e}")
+            raise
         except requests.exceptions.Timeout as e:
             print(f"Timeout Error: {e}")
+            raise
         except Exception as e:
             print(f"Unknown Error: {e}")
+            raise
         else:
             print("Data Extraction successful")
             return market_data
