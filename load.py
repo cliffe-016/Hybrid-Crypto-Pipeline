@@ -1,0 +1,69 @@
+from sqlalchemy import create_engine, exc
+import psycopg2
+import config
+from extract import extract
+import pandas as pd
+
+def load():
+    """Load the raw data into Postgres"""
+    market_data = extract()
+    try:
+        # Convert the dictionaries to  dataframes
+        ticker_df = pd.DataFrame(market_data.get("ticker", []))
+        trading_pairs_df = pd.DataFrame(market_data.get("trading_pairs", []))
+
+        # For the othe dictionaries, iterate through the symbols (top-level key) 
+        # Create empty lists to store the data after each iteration
+        ob_list = []
+        ohlc_list = []
+
+        for symbol, data in market_data.items():
+            if symbol in ["ticker", "trading_pairs"]:
+                continue #skip, already converted
+
+            # Extract order book data
+            order_book = data.get("order_book")
+            if order_book:
+                order_book["symbol"] = symbol #tag the dats with the corresponding symbol
+                ob_list.append(order_book) #store the data
+
+            # Extract candlestick data
+            ohlc = data.get("ohlc")
+            if ohlc:
+                temp_df = pd.DataFrame(ohlc) #convert to df to add column, ohlc is a list of lists
+                temp_df["symbol"] = symbol
+                ohlc_list.append(temp_df)
+
+        # Combine the nested dfs from the for loop 
+        order_book_df = pd.DataFrame(ob_list)
+
+        if ohlc_list:
+            candlestick_df = pd.concat(ohlc_list, ignore_index=True)
+        else:
+            candlestick_df = pd.DataFrame()
+        
+        # Define sqlalchemy engine
+        engine = create_engine(config.POSTGRES_URL)
+        ticker_df.to_sql("tickers", con=engine, if_exists="append", index=False)
+        print(f"Tickers\n Rows: {len(ticker_df)} loaded")
+
+        trading_pairs_df.to_sql("trading_pairs", con=engine, if_exists="append", index=False)
+        print(f"Trading Pairs\n Rows: {len(trading_pairs_df)} loaded")
+        
+        order_book_df.to_sql("order_books", con=engine, if_exists="append", index=False)
+        print(f"Order Books\n Rows: {len(order_book_df)} loaded")
+
+        candlestick_df.to_sql("candlestick_data", con=engine, if_exists="append", index=False)
+        print(f"OHLC Data\n Rows: {len(candlestick_df)} loaded")
+
+    except exc.IntegrityError as e:
+        print(f"Data Constraint Error: {e}")
+    except exc.OperationalError as e:
+        print(f"Database connection Error: {e}")
+    except exc.DataError as e:
+        print(f"Value Processing Error: {e}")
+    except Exception as e:
+        print(f"Ingestion Failure: {e}")
+    else:
+        print("Data Loaded Successfully")
+        
