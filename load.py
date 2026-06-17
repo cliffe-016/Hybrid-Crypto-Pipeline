@@ -3,6 +3,7 @@ import psycopg2
 import config
 from extract import extract
 import pandas as pd
+import json
 
 def load():
     """Load the raw data into Postgres"""
@@ -16,6 +17,13 @@ def load():
 
         # Extract the symbol data to void a Value Error
         trading_pairs_df = pd.DataFrame(trading_pairs_raw.get("symbols", []))
+
+        # Define the complex lists and dicts still in the data and convert them into strings for safe loading
+        complex_columns = ['filters', 'permissions', 'permissionSets', 'allowedSelfTradePreventionModes', 'orderTypes']
+
+        for col in complex_columns:
+            if col in trading_df.columns:
+                trading_pairs[col] = trading_pairs[col].apply(lambda x: json.dumps(x) if isinstance(x, (list, dict)) else x) #convert the columns to strings if lisst or dict
 
         # For the othe dictionaries, iterate through the symbols (top-level key) 
         # Create empty lists to store the data after each iteration
