@@ -12,10 +12,10 @@ def load():
         ticker_df = pd.DataFrame(market_data.get("ticker", []))
 
         # Get the nested data
-        trading_pairs_df = pd.DataFrame(market_data.get("trading_pairs", {}))
+        trading_pairs_raw = market_data.get("trading_pairs", {})
 
         # Extract the symbol data to void a Value Error
-        trading_pairs_df = pd.DataFrame(trading_pairs_df.get("symbols", []))
+        trading_pairs_df = pd.DataFrame(trading_pairs_raw.get("symbols", []))
 
         # For the othe dictionaries, iterate through the symbols (top-level key) 
         # Create empty lists to store the data after each iteration
