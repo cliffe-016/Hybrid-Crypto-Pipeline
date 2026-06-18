@@ -41,7 +41,7 @@ def load():
                 ob_list.append(order_book) #store the data
 
             # Extract candlestick data
-            ohlc = data.get("ohlc")
+            ohlc = data.get("candlestick")
             if ohlc:
                 temp_df = pd.DataFrame(ohlc) #convert to df to add column, ohlc is a list of lists
                 temp_df["symbol"] = symbol
