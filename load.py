@@ -22,8 +22,8 @@ def load():
         complex_columns = ['filters', 'permissions', 'permissionSets', 'allowedSelfTradePreventionModes', 'orderTypes']
 
         for col in complex_columns:
-            if col in trading_df.columns:
-                trading_pairs[col] = trading_pairs[col].apply(lambda x: json.dumps(x) if isinstance(x, (list, dict)) else x) #convert the columns to strings if lisst or dict
+            if col in trading_pairs_df.columns:
+                trading_pairs_df[col] = trading_pairs_df[col].apply(lambda x: json.dumps(x) if isinstance(x, (list, dict)) else x) #convert the columns to strings if lisst or dict
 
         # For the othe dictionaries, iterate through the symbols (top-level key) 
         # Create empty lists to store the data after each iteration
