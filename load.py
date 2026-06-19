@@ -42,8 +42,16 @@ def load():
 
             # Extract candlestick data
             ohlc = data.get("candlestick")
+
+            # Define candlestick columns (payload only returns values)
+            candlestick_columns = [
+                "open_time", "open", "high", "low", "close", "volume",
+                "close_time", "quote_asset_volume", "number_of_trades",
+                "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume", "ignore"
+            ]
+
             if ohlc:
-                temp_df = pd.DataFrame(ohlc) #convert to df to add column, ohlc is a list of lists
+                temp_df = pd.DataFrame(ohlc, columns=candlestick_columns) #convert to df to add defined columns; ohlc is a list of lists
                 temp_df["symbol"] = symbol
                 ohlc_list.append(temp_df)
 
