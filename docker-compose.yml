@@ -141,7 +141,7 @@ services:
     image: bitnamilegacy/spark:3.4
     container_name: spark_submitter
     volumes:
-      - ./:/app
+      - ./src:/app/src
     command: >
       spark-submit 
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 
@@ -173,7 +173,7 @@ services:
     image: cassandra:4.1
     container_name: cassandra_init
     volumes:
-      - ./init.cql:/init.cql
+      - ./docker/init_scripts/init.cql:/init.cql
     command: >
       bash -c "echo 'Waiting for the Cassandra Native Transport Port...';
       sleep 10; 
