@@ -1,0 +1,30 @@
+FROM apache/airflow:3.2.2-python3.12
+
+# Use root to install uv and dependencies
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+         build-essential \
+  && apt-get autoremove -yqq --purge \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Switch back to the airflow user
+USER airflow
+
+# Copy the dependency files
+COPY --chown=airflow:root pyproject.toml uv.lock /opt/airflow/
+
+# Install dependencies into the Airflow python environment using uv
+RUN uv pip install --system -r /opt/airflow/pyproject.toml
+
+# Copy the source code and DAGs into the container
+COPY --chown=airflow:root src/ /opt/airflow/src/
+COPY --chown=airflow:root dags/ /opt/airflow/dags/
+COPY --chown=airflow:root .env /opt/airflow/.env
+
+# Add src to PYTHONPATH so the DAGs can import from it 
+ENV PYTHONPATH="/opt/airflow/src:${PYTHONPATH}"
