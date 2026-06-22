@@ -29,6 +29,11 @@ enriched_candlestick = raw_candlestick \
         (max("high_price") - min("low_price")).alias("max_spread")
         ) 
 
+# Flatten the window struct so Cassandra can read it
+candlestick_df = enriched_candles \
+    .withColumn("window_start", col("window.start")) \
+    .drop("window")
+
 # Transform the remaining data
 clean_orders = raw_books \
     .selectExpr("CAST(value AS STRING)") \
@@ -43,9 +48,40 @@ clean_pairs = raw_pairs \
     .select(from_json(col("value"), schemas.wrap_debezium(schemas.trading_pairs_schema)).alias("data")).select("data.payload.after.*")
 
 # Execute the streams 
-query_candles = enriched_candlestick.writeStream.outputMode("update").format("console").start()
-query_orders = clean_orders.writeStream.outputMode("append").format("console").start()
-query_tickers = clean_tickers.writeStream.outputMode("append").format("console").start()
-query_pairs = clean_pairs.writeStream.outputMode("append").format("console").start()
+query_candles = candlestick_df.writeStream.outputMode("update") \
+    .format("org.apache.spark.sql.cassandra") \
+    .option("keyspace", "binance") \
+    .option("table", "candlestick") \
+    .option("spark.cassandra.connection.host", "cassandra") \
+    .option("spark.cassandra.connection.port", "9042") \
+    .option("checkpointLocation", "/tmp/checkpoints/candlestick") \
+    .start()
+
+query_orders = clean_orders.writeStream.outputMode("append") \
+    .format("org.apache.spark.sql.cassandra") \
+    .option("keyspace", "binance") \
+    .option("table", "order_books") \
+    .option("spark.cassandra.connection.host", "cassandra") \
+    .option("spark.cassandra.connection.port", "9042") \
+    .option("checkpointLocation", "/tmp/checkpoints/order_books") \
+    .start()
+
+query_tickers = clean_tickers.writeStream.outputMode("append")
+    .format("org.apache.spark.sql.cassandra") \
+    .option("keyspace", "binance") \
+    .option("table", "tickers") \
+    .option("spark.cassandra.connection.host", "cassandra") \
+    .option("spark.cassandra.connection.port", "9042") \
+    .option("checkpointLocation", "/tmp/checkpoints/tickers") \
+    .start()
+
+query_pairs = clean_pairs.writeStream.outputMode("append")
+    .format("org.apache.spark.sql.cassandra") \
+    .option("keyspace", "binance") \
+    .option("table", "trading_pairs") \
+    .option("spark.cassandra.connection.host", "cassandra") \
+    .option("spark.cassandra.connection.port", "9042") \
+    .option("checkpointLocation", "/tmp/checkpoints/trading_pairs") \
+    .start()
 
 spark.streams.awaitAnyTermination()
