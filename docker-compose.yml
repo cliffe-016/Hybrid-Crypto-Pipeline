@@ -169,6 +169,22 @@ services:
     networks:
       - streaming_net
 
+  cassandra-init:
+    image: cassandra:4.1
+    container_name: cassandra_init
+    volumes:
+      - ./init.cql:/init.cql
+    command: >
+      bash -c "echo 'Waiting for the Cassandra Native Transport Port...';
+      sleep 10; 
+      cqlsh cassandra 9042 -f /init.cql;
+      echo 'Cassandra completely initialized!'"
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    networks:
+      - streaming_net
+
 networks:
   streaming_net:
     driver: bridge
