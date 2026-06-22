@@ -1,7 +1,7 @@
 from airflow.sdk import dag, task
 from datetime import datetime, timedelta
-from extract import extract
-from load import load
+from src.extraction.extract import extract
+from src.ingestion.load import load
 
 default_args = {
     'owner': 'Cliffe',

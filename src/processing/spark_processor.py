@@ -1,7 +1,7 @@
-from spark_utils import spark_session
+from src.utils.spark_utils import spark_session
 from pyspark.sql.functions import *
-from kafka_utils import read_kafka_topic
-import spark_schema
+from src.utils.kafka_utils import read_kafka_topic
+import src.processing.spark_schema
 
 spark = spark_session()
 

@@ -1,4 +1,4 @@
-import config
+import src.config
 import time
 import requests
 
