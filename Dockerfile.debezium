@@ -1,0 +1,19 @@
+FROM debezium/connect:2.5
+
+USER root
+
+# Install tar and gzip to extract the Confluent Hub Client
+RUN microdnf -y install tar gzip && microdnf clean all
+
+# Download and extract the official Confluent Hub Client
+RUN curl -L -O http://client.hub.confluent.io/confluent-hub-client-latest.tar.gz && \
+    tar -zxvf confluent-hub-client-latest.tar.gz -C /opt && \
+    rm confluent-hub-client-latest.tar.gz
+
+# Create a dummy config file to satisfy the CLI and install the plugin securely
+RUN touch /tmp/dummy.properties && \
+    /opt/bin/confluent-hub install --no-prompt confluentinc/kafka-connect-avro-converter:7.4.0 \
+    --component-dir /kafka/connect \
+    --worker-configs /tmp/dummy.properties
+
+USER kafka
