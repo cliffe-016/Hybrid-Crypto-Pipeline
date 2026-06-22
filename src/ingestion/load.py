@@ -1,13 +1,13 @@
 from sqlalchemy import create_engine, exc
 import psycopg2
-import src.config
+from src import config
 from src.extraction import extract
 import pandas as pd
 import json
 
 def load():
     """Load the raw data into Postgres"""
-    market_data = extract()
+    market_data = extract.extract()
     try:
         # Convert the dictionaries to  dataframes
         ticker_df = pd.DataFrame(market_data.get("ticker", []))
