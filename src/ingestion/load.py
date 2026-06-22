@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, exc
 import psycopg2
 import src.config
-from src.extract import extract
+from src.extraction import extract
 import pandas as pd
 import json
 
