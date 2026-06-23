@@ -16,9 +16,13 @@ def extract():
                 "trading_pairs": config.trading_pairs_url
                 }
 
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                }
+
             # Iterate over the dictionary to extract the data
             for name, url in urls.items():
-                response = session.get(url)
+                response = session.get(url, headers=headers)
                 response.raise_for_status() # raise http errors
                 market_data[name] = response.json() # store the data in the empty dictionary
 
@@ -30,10 +34,10 @@ def extract():
                 params = {"symbol": symbol}
                 ohlc_params = {"symbol": symbol, "interval": "1M"} # interval is also mandatory for ohlc endpoint
         
-                order_data = session.get(config.order_book_url, params=params)
+                order_data = session.get(config.order_book_url, headers=headers, params=params)
                 order_data.raise_for_status()
 
-                ohlc_data = session.get(config.ohlc_url, params=ohlc_params)
+                ohlc_data = session.get(config.ohlc_url, headers=headers, params=ohlc_params)
                 ohlc_data.raise_for_status()
 
                 # Convert the data to json and add the data to the main dictionary with the symbol as the key
