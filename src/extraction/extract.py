@@ -22,7 +22,7 @@ def extract():
 
             # Iterate over the dictionary to extract the data
             for name, url in urls.items():
-                response = session.get(url, headers=headers)
+                response = session.get(url, headers=headers, timeout=10)
                 response.raise_for_status() # raise http errors
                 market_data[name] = response.json() # store the data in the empty dictionary
 
@@ -34,10 +34,10 @@ def extract():
                 params = {"symbol": symbol}
                 ohlc_params = {"symbol": symbol, "interval": "1M"} # interval is also mandatory for ohlc endpoint
         
-                order_data = session.get(config.order_book_url, headers=headers, params=params)
+                order_data = session.get(config.order_book_url, headers=headers, params=params, timeout=10)
                 order_data.raise_for_status()
 
-                ohlc_data = session.get(config.ohlc_url, headers=headers, params=ohlc_params)
+                ohlc_data = session.get(config.ohlc_url, headers=headers, params=ohlc_params, timeout=10)
                 ohlc_data.raise_for_status()
 
                 # Convert the data to json and add the data to the main dictionary with the symbol as the key
