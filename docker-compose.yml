@@ -73,6 +73,13 @@ services:
       VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_CONFIG_PROVIDERS: env
+      CONNECT_CONFIG_PROVIDERS_ENV_CLASS: org.apache.kafka.common.config.provider.EnvVarConfigProvider
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DB}
     depends_on:
       schema-registry:
         condition: service_healthy
@@ -95,9 +102,9 @@ services:
     command: >
       sh -c "
       echo 'Waiting for Debezium to start...';
-      while ! curl -s http://debezium:8083 > /dev/null; do sleep 3; done;
+      while ! curl -f -s http://debezium:8083 > /dev/null; do sleep 3; done;
       echo 'Debezium is up! Registering Binance Postgres connector...';
-      curl -i -X POST -H 'Accept:application/json' -H 'Content-Type:application/json' http://debezium:8083/connectors/ -d @/docker/debezium/register_postgres.json;
+      curl -i -X POST -H 'Accept:application/json' -H 'Content-Type:application/json' http://debezium:8083/connectors -d @/docker/debezium/register_postgres.json;
       echo 'Connector registered successfully!'
       "
 
@@ -314,3 +321,4 @@ volumes:
   pg_data:
   cassandra_data:
   kafka_data:
+
