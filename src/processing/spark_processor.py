@@ -1,15 +1,15 @@
 from src.utils.spark_utils import spark_session
 from pyspark.sql.functions import *
 from src.utils.kafka_utils import read_kafka_topic
-import src.processing.spark_schema
+import src.processing.spark_schema as schemas
 
 spark = spark_session()
 
 # Ingest the streams
-raw_candlesstick = read_kafka_topic("binance_stream.public.candlestick_data")
-raw_orders = read_kafka_topic("binance_stream.public.order_books")
-raw_tickers = read_kafka_topic("binance_stream.public.tickers")
-raw_pairs = read_kafka_topic("binance_stream.public.trading_pairs")
+raw_candlesstick = read_kafka_topic("binance_server.public.candlestick_data")
+raw_orders = read_kafka_topic("binance_server.public.order_books")
+raw_tickers = read_kafka_topic("binance_server.public.tickers")
+raw_pairs = read_kafka_topic("binance_server.public.trading_pairs")
 
 # Enrich the cnadlestick data
 enriched_candlestick = raw_candlestick \
@@ -26,16 +26,16 @@ enriched_candlestick = raw_candlestick \
         avg("price").alias("avg_minute_price"),
         sum("trade_volume").alias("total_volume_min"),
         stddev("price").alias("price_stddev"),
-        (max("high_price") - min("low_price")).alias("max_spread")
+        (max("price_high") - min("price_low")).alias("max_spread")
         ) 
 
 # Flatten the window struct so Cassandra can read it
-candlestick_df = enriched_candles \
+candlestick_df = enriched_candlestick \
     .withColumn("window_start", col("window.start")) \
     .drop("window")
 
 # Transform the remaining data
-clean_orders = raw_books \
+clean_orders = raw_orders \
     .selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), schemas.wrap_debezium(schemas.order_book_schema)).alias("data")).select("data.payload.after.*")
 
@@ -66,7 +66,7 @@ query_orders = clean_orders.writeStream.outputMode("append") \
     .option("checkpointLocation", "/tmp/checkpoints/order_books") \
     .start()
 
-query_tickers = clean_tickers.writeStream.outputMode("append")
+query_tickers = clean_tickers.writeStream.outputMode("append") \
     .format("org.apache.spark.sql.cassandra") \
     .option("keyspace", "binance") \
     .option("table", "tickers") \
@@ -75,7 +75,7 @@ query_tickers = clean_tickers.writeStream.outputMode("append")
     .option("checkpointLocation", "/tmp/checkpoints/tickers") \
     .start()
 
-query_pairs = clean_pairs.writeStream.outputMode("append")
+query_pairs = clean_pairs.writeStream.outputMode("append") \
     .format("org.apache.spark.sql.cassandra") \
     .option("keyspace", "binance") \
     .option("table", "trading_pairs") \
