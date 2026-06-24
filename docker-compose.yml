@@ -176,13 +176,15 @@ services:
     image: bitnamilegacy/spark:3.4
     container_name: spark_submitter
     volumes:
-      - ./src:/app/src
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app
     command: >
       spark-submit 
-      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 
-      --py-files /app/spark_schema.py
+      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0,org.apache.spark:spark-avro_2.12:3.4.0
+      --py-files /app/src/processing/spark_schema.py
       --master spark://spark-master:7077 
-      /app/spark_processor.py
+      /app/src/processing/spark_processor.py
     depends_on:
       - spark-master
       - spark-worker
