@@ -1,3 +1,7 @@
+from src.utils.spark_utils import spark_session
+
+spark = spark_session()
+
 def read_kafka_topic(topic_name):
     return spark.readStream \
         .format("kafka") \
