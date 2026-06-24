@@ -2,7 +2,7 @@ from src.utils.spark_utils import spark_session
 from pyspark.sql.functions import *
 from pyspark.sql.avro.functions import from_avro
 from src.utils.kafka_utils import read_kafka_topic
-from src.processing.spark_schema import candlestick_avro, orders_avro, tickers_avro, pairs_avro)
+from src.processing.spark_schema import (candlestick_avro, orders_avro, tickers_avro, pairs_avro)
 
 spark = spark_session()
 
