@@ -125,6 +125,7 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema_registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_OPTS: "-Xms256m -Xmx512m"
     depends_on:
       kafka:
         condition: service_healthy
@@ -160,7 +161,7 @@ services:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_CORES=4
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
@@ -177,14 +178,16 @@ services:
     container_name: spark_submitter
     volumes:
       - ./:/app
+      - ./spark_cache:/opt/bitnami/spark/.ivy2
     environment:
       - PYTHONPATH=/app
     command: >
+      /bin/bash -c "pip install --user requests &&
       spark-submit 
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0,org.apache.spark:spark-avro_2.12:3.4.0,com.datastax.spark:spark-cassandra-connector_2.12:3.4.1
       --py-files /app/src/processing/spark_schema.py
       --master spark://spark-master:7077 
-      /app/src/processing/spark_processor.py
+      /app/src/processing/spark_processor.py"
     depends_on:
       - spark-master
       - spark-worker
@@ -211,7 +214,7 @@ services:
     image: cassandra:4.1
     container_name: cassandra_init
     volumes:
-      - ./docker/init_scripts/init.cql:/init.cql
+      - ./docker/init/init.cql:/init.cql
     command: >
       bash -c "echo 'Waiting for the Cassandra Native Transport Port...';
       sleep 10; 
