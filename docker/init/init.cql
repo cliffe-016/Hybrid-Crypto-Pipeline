@@ -3,37 +3,35 @@ WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 USE binance;
 
-CREATE TABLE candlestick (
+CREATE TABLE IF NOT EXISTS candlestick (
     symbol text,
     window_start timestamp,
-    avg_minute_price float,
-    total_minute_volume float,
-    price_stddev float,
+    avg_minute_price double,
+    total_volume_min double,
+    price_stddev double,
     max_spread float,
-    is_anomaly boolean,
-    PRIMARY KEY ((symbol), window_start)
-) WITH CLUSTERING ORDER BY (window_start DESC);
+    PRIMARY KEY (symbol, window_start)
+);
 
 CREATE TABLE IF NOT EXISTS order_books (
     symbol text,
-    lastUpdateId bigint,
+    lastupdateid bigint,0
     bids text,
     asks text,
-    PRIMARY KEY ((symbol), lastUpdateId)
-) WITH CLUSTERING ORDER BY (lastUpdateId DESC);
-
+    PRIMARY KEY (symbol, lastupdateid)
+);
 
 CREATE TABLE IF NOT EXISTS tickers (
     symbol text PRIMARY KEY,
-    priceChange text,
-    lastPrice text,
+    price_change text,
+    price_change_percent text,
+    last_price text,
     volume text
 );
 
-
 CREATE TABLE IF NOT EXISTS trading_pairs (
     symbol text PRIMARY KEY,
-    baseAsset text,
-    quoteAsset text,
+    base_asset text,
+    quote_asset text,
     status text
 );
